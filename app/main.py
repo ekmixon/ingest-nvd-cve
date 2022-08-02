@@ -62,10 +62,10 @@ def ingest():
 
     publisher = pubsub_v1.PublisherClient(batch_settings=pubsub_v1.types.BatchSettings(max_latency=5))
     topic_path = publisher.topic_path(project_id, topic_name)
-    print('Publishing data to {} ...'.format(topic_path))
+    print(f'Publishing data to {topic_path} ...')
 
     for json in nvd_cve_json_list:
-        print('Publishing records from {} ...'.format(json))
+        print(f'Publishing records from {json} ...')
         request = rq.get(nvd_cve_download_url_prefix.format(file=json, extension=  ".zip"))
         nvd_zip = zipfile.ZipFile(BytesIO(request.content))
         nvd_json = nvd_zip.open(json)
@@ -104,7 +104,7 @@ def subscribe():
 
     # The subscriber is non-blocking, so we must keep the main thread from
     # exiting to allow it to process messages in the background.
-    print('Listening for messages on {} ...'.format(subscription_path))
+    print(f'Listening for messages on {subscription_path} ...')
     loop = True
     while loop:
         response = subscriber.pull(request={"subscription": subscription_path, "max_messages": 10})
@@ -133,7 +133,7 @@ def callback(message):
             create_table()
             table = bq_client.get_table(table_ref)
 
-        print("Inserting {} rows into BigQuery ...".format(len(rows_to_insert)))
+        print(f"Inserting {len(rows_to_insert)} rows into BigQuery ...")
         errors = bq_client.insert_rows_json(table, rows_to_insert)
         if errors != []:
             print(errors)
@@ -292,7 +292,7 @@ def create_table():
     except NotFound:
         try:
             table = bq_client.create_table(table)
-            print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
+            print(f"Created table {table.project}.{table.dataset_id}.{table.table_id}")
             print("Going to sleep for 90 seconds to ensure data availability in newly created table")
             time.sleep(90)
         except Conflict:
